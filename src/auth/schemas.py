@@ -28,3 +28,8 @@ class CreateUser(BaseModel):
 class Login(BaseModel):
     email: str  = Field(max_length=20)
     password : str
+
+class Reset_password(BaseModel):
+    email : str 
+    password : str 
+    confirm_password: str

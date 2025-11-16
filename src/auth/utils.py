@@ -20,8 +20,14 @@ def verify_password(plain_text,hashed_password) -> bool:
 def create_token(user_data:dict, expire_time:timedelta =None , refresh:bool = False) -> str:
     payload = {}
     payload['user'] = user_data
-    payload['exp'] = datetime.now(timezone.utc) + expire_time if expire_time is not None else datetime.now() + timedelta(minutes=ASSESS_TOKEN_EXPIRE_MINUTES)
-    payload['ajk'] = str(uuid.uuid4())
+    # expiration: prefer provided expire_time, otherwise use a timezone-aware default
+    payload['exp'] = (
+        datetime.now(timezone.utc) + expire_time
+        if expire_time is not None
+        else datetime.now(timezone.utc) + timedelta(minutes=ASSESS_TOKEN_EXPIRE_MINUTES)
+    )
+    # include a JWT ID claim so other modules can identify tokens (depencies expects 'jti')
+    payload['jti'] = str(uuid.uuid4())
     payload['refresh'] = refresh
     # token = jwt.encode(payload,Config.JWT_KEY,algorithm=Config.JWT_ALGORITHM)
     token = jwt.encode(
