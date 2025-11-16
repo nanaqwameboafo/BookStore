@@ -1,4 +1,4 @@
-from . schemas import CreateUser
+from . schemas import CreateUser, Reset_password
 from sqlmodel.ext.asyncio.session import AsyncSession
 from sqlmodel import select
 from . models import User
@@ -33,5 +33,23 @@ class AuthService:
         session.add(new_user)
         await session.commit()
         return new_user
+
+    async def reset_password(self,email:str,Password:Reset_password,session:AsyncSession):
+        check_email = await self.get_user_email(email, session)
+        if check_email is None:
+            return None  # Email not found
+        
+        # Only update password if passwords match
+        if Password.password == Password.confirm_password:
+            check_email.password_hash = Hash_password(Password.confirm_password)
+            await session.commit()
+            return check_email
+        
+        return None  # Passwords do not match
+
+
+            
+          
+            
 
     
