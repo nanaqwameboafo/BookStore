@@ -1,7 +1,7 @@
 from click import confirm
 from fastapi import APIRouter, Depends,HTTPException,status
 from sqlmodel.ext.asyncio.session import AsyncSession
-from . schemas import CreateUser , UserResponds, Login,Reset_password
+from . schemas import CreateUser , UserResponds, Login,ResetPassword
 from src.db.main import get_db
 from . service import AuthService
 from . utils import create_token
@@ -84,7 +84,7 @@ async def revoke_token_data (token_details:dict = Depends(AccessTokenBearer())):
 
 
 @auth_router.patch('/forgotten password')
-async def forgotten_paassword(reset:Reset_password,session:AsyncSession = Depends(get_db)):
+async def forgotten_paassword(reset:ResetPassword,session:AsyncSession = Depends(get_db)):
     email = reset.email
     confirm_password = await user_service.reset_password(email, reset, session)
     if confirm_password is None :

@@ -1,9 +1,10 @@
-from . schemas import CreateUser, Reset_password
+from . schemas import CreateUser, ResetPassword
 from sqlmodel.ext.asyncio.session import AsyncSession
 from sqlmodel import select
 from . models import User
 from uuid import UUID
 from . utils import Hash_password,verify_password
+from typing import Optional
 
 
 class AuthService:
@@ -34,22 +35,25 @@ class AuthService:
         await session.commit()
         return new_user
 
-    async def reset_password(self,email:str,Password:Reset_password,session:AsyncSession):
-        check_email = await self.get_user_email(email, session)
-        if check_email is None:
-            return None  # Email not found
+    async def reset_password(
+        self, 
+        email: str, 
+        password_data: ResetPassword, 
+        session: AsyncSession
+    ) -> tuple[bool, str, Optional[User]]:
+        """Reset password for a user (direct method without token)"""
+        user = await self.get_user_email(email, session)
+        if user is None:
+            return False, "Email not found", None
         
-        # Only update password if passwords match
-        if Password.password == Password.confirm_password:
-            check_email.password_hash = Hash_password(Password.confirm_password)
-            await session.commit()
-            return check_email
+        if password_data.password != password_data.confirm_password:
+            return False, "Passwords do not match", None
         
-        return None  # Passwords do not match
+        user.password_hash = Hash_password(password_data.password)
+        session.add(user)
+        await session.commit()
+        await session.refresh(user)
+        
+        return True, "Password reset successful", user
 
 
-            
-          
-            
-
-    
